@@ -6,6 +6,8 @@ import { Button } from '@rneui/themed';
 import * as Location from 'expo-location';
 import * as ImagePicker from 'expo-image-picker';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import uuid from 'react-native-uuid';
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const InventoryScreen = () => {
     const [selectedValue, setSelectedValue] = useState(1);
@@ -13,6 +15,7 @@ const InventoryScreen = () => {
     const [location, setLocation] = useState(null);
     const [errorMsg, setErrorMsg] = useState(null);
     const [images, setImages] = useState(Array(selectedValue).fill(null));
+    const [inputs, setInputs] = useState(Array(selectedValue).fill(''));
 
     const renderInputs = () => {
         let inputs = [];
@@ -49,6 +52,12 @@ const InventoryScreen = () => {
         }
         return inputs;
       };
+
+    const handleInputChange = (text, index) => {
+      const newInputs = [...inputs];
+      newInputs[index] = text;
+      setInputs(newInputs);
+    };
 
     const getLocation = async () => {
         setIsLoading(true);
@@ -87,9 +96,28 @@ const InventoryScreen = () => {
         }
       };
 
+
+    const saveData = async () => {
+      try {
+        let uuid_inventory = uuid.v4();
+        console.log("id", uuid_inventory)
+        await AsyncStorage.setItem('id', JSON.stringify(uuid_inventory));
+        console.log("inputs", inputs)
+        await AsyncStorage.setItem('inputs', JSON.stringify(inputs));
+        console.log("images", images)
+        await AsyncStorage.setItem('images', JSON.stringify(images));
+        console.log("location", location)
+        if (location) await AsyncStorage.setItem('location', JSON.stringify(location));
+        console.log("selectedValue", selectedValue)
+        await AsyncStorage.setItem('selectedValue', JSON.stringify(selectedValue));
+        console.log('Data saved successfully!');
+      } catch (error) {
+        console.error('Error saving data:', error);
+      }
+    };
+
     const handleSubmit = () => {
-      console.log("Imágenes:", images);
-      console.log("Ubicación:", location);
+      saveData();
     };
   
     return (
@@ -98,11 +126,13 @@ const InventoryScreen = () => {
           placeholder="Barrio"
           containerStyle={styles.inputContainer}
           inputStyle={styles.input}
+          onChangeText={(text) => handleInputChange(text, 0)}
         />
         <Input
           placeholder="Altura poste"
           containerStyle={styles.inputContainer}
           inputStyle={styles.input}
+          onChangeText={(text) => handleInputChange(text, 1)}
         />
         <TouchableOpacity key="FotoPoste" onPress={() => pickImage(10)} style={styles.PhotoInventaryButton}>
             {images[10] ? (
@@ -140,7 +170,7 @@ const InventoryScreen = () => {
         </Picker>
 
         {renderInputs()}
-        <Button title="Enviar Datos" onPress={handleSubmit} />
+        <Button title="Guardar Datos" onPress={handleSubmit} />
       </ScrollView>
     );
   };
