@@ -1,21 +1,24 @@
 import React, { useState } from "react";
-import {View, Text, StyleSheet, ScrollView, ActivityIndicator} from "react-native";
-import { Input } from '@rneui/themed';
+import {View, Text, StyleSheet, ScrollView, ActivityIndicator, Image, TouchableOpacity } from "react-native";
+import { Input, Icon } from '@rneui/themed';
 import { Picker } from '@react-native-picker/picker';
 import { Button } from '@rneui/themed';
 import * as Location from 'expo-location';
+import * as ImagePicker from 'expo-image-picker';
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 
 const InventoryScreen = () => {
     const [selectedValue, setSelectedValue] = useState(1);
     const [isLoading, setIsLoading] = useState(false);
     const [location, setLocation] = useState(null);
     const [errorMsg, setErrorMsg] = useState(null);
+    const [images, setImages] = useState(Array(selectedValue).fill(null));
 
     const renderInputs = () => {
         let inputs = [];
         for (let i = 0; i < selectedValue; i++) {
           inputs.push(
-            <View>
+            <View style={styles.containerSelected}>
                 <Text style={styles.label}>Luminaria {i + 1}</Text>
                 <Input
                 key={`Serial-${i + 1}`}
@@ -29,6 +32,18 @@ const InventoryScreen = () => {
                 containerStyle={styles.dynamicInputContainer}
                 inputStyle={styles.input}
                 />
+                <TouchableOpacity onPress={() => pickImage(i)} style={styles.PhotoInventaryButton}>
+                    {images[i] ? (
+                        <Icon
+                        name="check"
+                        type="font-awesome"
+                        color="green"
+                        size={30}
+                        />
+                    ) : (
+                      <MaterialCommunityIcons name="camera-marker-outline" size={40} color="black" />
+                    )}
+                </TouchableOpacity>
             </View>
           );
         }
@@ -37,6 +52,7 @@ const InventoryScreen = () => {
 
     const getLocation = async () => {
         setIsLoading(true);
+        setErrorMsg(null);
         try {
             let { status } = await Location.requestForegroundPermissionsAsync();
             if (status !== 'granted') {
@@ -55,6 +71,26 @@ const InventoryScreen = () => {
             setIsLoading(false);
         }
     };
+
+    const pickImage = async (index) => {
+        let result = await ImagePicker.launchCameraAsync({
+          mediaTypes: ImagePicker.MediaTypeOptions.Images,
+          allowsEditing: false,
+          aspect: [4, 3],
+          quality: 1,
+        });
+            
+        if (!result.canceled) {
+          let newImages = [...images];
+          newImages[index] = result.assets[0].uri;       
+          setImages(newImages);          
+        }
+      };
+
+    const handleSubmit = () => {
+      console.log("Imágenes:", images);
+      console.log("Ubicación:", location);
+    };
   
     return (
       <ScrollView contentContainerStyle={styles.container}>
@@ -68,9 +104,21 @@ const InventoryScreen = () => {
           containerStyle={styles.inputContainer}
           inputStyle={styles.input}
         />
+        <TouchableOpacity key="FotoPoste" onPress={() => pickImage(10)} style={styles.PhotoInventaryButton}>
+            {images[10] ? (
+                <Icon
+                name="check"
+                type="font-awesome"
+                color="green"
+                size={30}
+                />
+            ) : (
+              <MaterialCommunityIcons name="camera-marker-outline" size={40} color="black" />
+            )}
+        </TouchableOpacity>
         <View style={styles.inputContainer}>
-            <Button key="geolocalizacion" title="Obtener Geolocalización" onPress={getLocation} style={styles.label}/>
-            {isLoading && <ActivityIndicator size="large" color="#0000ff" />}
+            <Button key="geolocalizacion" title="Obtener Geolocalización" onPress={getLocation} style={styles.GeoButton}/>
+            {isLoading && <ActivityIndicator size="large" color="#7171F4" />}
             {location && (
                 <Text style={styles.locationText}>
                 Latitud: {location.coords.latitude}, Longitud: {location.coords.longitude}
@@ -92,7 +140,7 @@ const InventoryScreen = () => {
         </Picker>
 
         {renderInputs()}
-
+        <Button title="Enviar Datos" onPress={handleSubmit} />
       </ScrollView>
     );
   };
@@ -100,15 +148,20 @@ const InventoryScreen = () => {
   const styles = StyleSheet.create({
     container: {
       flexGrow: 1,
-      padding: 20,
+      padding: 25,
       backgroundColor: '#f5f5f5',
     },
     inputContainer: {
-      marginBottom: 20,
+      marginBottom: 10,
+    },
+    containerSelected: {      
+      backgroundColor: '#D8E2DC',
+      borderRadius: 5,
+      marginBottom: 10
     },
     input: {
       paddingHorizontal: 10,
-      paddingVertical: 8,
+      paddingVertical: 3,
       backgroundColor: 'white',
       borderRadius: 5,
       borderColor: '#ccc',
@@ -116,11 +169,14 @@ const InventoryScreen = () => {
     },
     label: {
       fontSize: 18,
+      marginLeft: 5,
       marginBottom: 10,
       color: '#333',
     },
+    GeoButton:{
+      tintColor: '#7171F4'
+    },
     picker: {
-      height: 50,
       width: '100%',
       backgroundColor: 'white',
       borderRadius: 5,
@@ -131,6 +187,32 @@ const InventoryScreen = () => {
     dynamicInputContainer: {
       marginBottom: 15,
     },
+    imagePickerButton: {
+      padding: 10,
+      borderRadius: 5,
+      alignItems: 'center',
+      marginTop: 5,
+    },
+    PhotoInventaryButton: {
+      alignItems: 'center',
+      marginBottom: 20,
+    },
+    image: {  
+      width: 100,
+      height: 100,
+      marginTop: 10,
+    },
+    locationText: {
+      marginTop: 20,
+      fontSize: 16,
+      color: '#333',
+    },
+    errorText: {
+      marginTop: 20,
+      fontSize: 16,
+      color: 'red',
+    },
+
   });
 
 export default InventoryScreen;

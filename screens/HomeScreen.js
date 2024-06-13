@@ -14,14 +14,16 @@ const HomeScreen = () => {
             <View style={styles.titleContainer}>
                 <Text style={styles.titleApp}>Control Luminarias</Text>
             </View>
-            <View style={styles.stepContainer}>
-                <ButtonDark text="Inventario" onPress={() => navigation.navigate("Inventory")}/> 
-            </View>
-            <View style={styles.stepContainer}>
-                <ButtonDark text="Instalación" onPress={() => navigation.navigate("Inventory")}/> 
-            </View>
-            <View style={styles.stepContainer}>
-                <ButtonDark text="Mantenimiento" onPress={() => navigation.navigate("Inventory")}/> 
+            <View style={styles.bottoms}>
+              <View style={styles.stepContainer}>
+                  <ButtonDark text="Inventario" onPress={() => navigation.navigate("Inventory")}/> 
+              </View>
+              <View style={styles.stepContainer}>
+                  <ButtonDark text="Instalación" onPress={() => navigation.navigate("Inventory")}/> 
+              </View>
+              <View style={styles.stepContainer}>
+                  <ButtonDark text="Mantenimiento" onPress={() => navigation.navigate("Inventory")}/> 
+              </View>
             </View>
         </View>
     )
@@ -29,7 +31,11 @@ const HomeScreen = () => {
 
 const styles = StyleSheet.create({
     headerStyle:{
-        flex: 1,
+      flex: 1, 
+      margin: 5       
+    },
+    bottoms:{
+      marginLeft: 25
     },
     titleContainer: {
       flexDirection: 'row',
