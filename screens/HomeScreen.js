@@ -1,13 +1,13 @@
 import React from "react";
 import {View, Text, StyleSheet} from "react-native";
 import ButtonDark from '../components/navigation/button';
-import { useNavigation } from "@react-navigation/native"
+import { useNavigation } from "@react-navigation/native";
 
 
 
 const HomeScreen = () => {
 
-    const navigation = useNavigation()
+    const navigation = useNavigation();
 
     return(
         <View style={styles.headerStyle}>

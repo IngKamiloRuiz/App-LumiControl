@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {View, Text, StyleSheet, ScrollView, ActivityIndicator, Image, TouchableOpacity } from "react-native";
 import { Input, Icon } from '@rneui/themed';
 import { Picker } from '@react-native-picker/picker';
@@ -8,18 +8,39 @@ import * as ImagePicker from 'expo-image-picker';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import uuid from 'react-native-uuid';
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useNavigation } from "@react-navigation/native"
+import showToastSuccess from "../../components/navigation/toastSuccess";
+import showToastFail from "../../components/navigation/toastFail";
+import { format } from 'date-fns';
 
-const InventoryScreen = () => {
+
+const InventoryScreen = ({ route }) => {
     const [selectedValue, setSelectedValue] = useState(1);
     const [isLoading, setIsLoading] = useState(false);
     const [location, setLocation] = useState(null);
     const [errorMsg, setErrorMsg] = useState(null);
     const [images, setImages] = useState(Array(selectedValue).fill(null));
     const [inputs, setInputs] = useState(Array(selectedValue).fill(''));
+    const [lightInputs, setLigthInputs] = useState(Array(selectedValue).fill(''));
+    const navigation = useNavigation()
+    const [currentDateTime, setCurrentDateTime] = useState(null);
+    
+
+    useEffect(() => {
+      if (route.params?.item) {
+        const { inputs, images, lightInputs, location, selectedValue } = route.params.item.data;        
+        setInputs(inputs);
+        setLigthInputs(lightInputs);
+        setImages(images);
+        setLocation(location);
+        setSelectedValue(selectedValue);
+      }
+    }, [route.params]);
 
     const renderInputs = () => {
         let inputs = [];
         for (let i = 0; i < selectedValue; i++) {
+          let countInputs = i * 2
           inputs.push(
             <View style={styles.containerSelected}>
                 <Text style={styles.label}>Luminaria {i + 1}</Text>
@@ -28,12 +49,14 @@ const InventoryScreen = () => {
                 placeholder={`Serial`}
                 containerStyle={styles.dynamicInputContainer}
                 inputStyle={styles.input}
+                onChangeText={(text) => handleLightInputChange(text, countInputs)}
                 />
                 <Input
                 key={`Collarin-${i + 1}`}
                 placeholder={`Collarin`}
                 containerStyle={styles.dynamicInputContainer}
                 inputStyle={styles.input}
+                onChangeText={(text) => handleLightInputChange(text, countInputs + 1)}
                 />
                 <TouchableOpacity onPress={() => pickImage(i)} style={styles.PhotoInventaryButton}>
                     {images[i] ? (
@@ -59,6 +82,12 @@ const InventoryScreen = () => {
       setInputs(newInputs);
     };
 
+    const handleLightInputChange = (text, index) => {
+      const newLightInputs = [...lightInputs];
+      newLightInputs[index] = text;
+      setLigthInputs(newLightInputs);
+    };
+
     const getLocation = async () => {
         setIsLoading(true);
         setErrorMsg(null);
@@ -69,6 +98,10 @@ const InventoryScreen = () => {
             setIsLoading(false);
             return;
             }
+
+            const now = new Date();
+            const formattedDateTime = format(now, 'yyyy-MM-dd HH:mm:ss');
+            setCurrentDateTime(formattedDateTime);
 
             let location = await Location.getCurrentPositionAsync({
                 accuracy: Location.Accuracy.High,
@@ -98,19 +131,25 @@ const InventoryScreen = () => {
 
 
     const saveData = async () => {
-      try {
+      try {        
+
         let uuid_inventory = uuid.v4();
-        console.log("id", uuid_inventory)
-        await AsyncStorage.setItem('id', JSON.stringify(uuid_inventory));
-        console.log("inputs", inputs)
-        await AsyncStorage.setItem('inputs', JSON.stringify(inputs));
-        console.log("images", images)
-        await AsyncStorage.setItem('images', JSON.stringify(images));
-        console.log("location", location)
-        if (location) await AsyncStorage.setItem('location', JSON.stringify(location));
-        console.log("selectedValue", selectedValue)
-        await AsyncStorage.setItem('selectedValue', JSON.stringify(selectedValue));
-        console.log('Data saved successfully!');
+        let formData = {
+          id: uuid_inventory,
+          inputs: inputs,
+          lightInputs: lightInputs,
+          images: images,
+          location: location,
+          selectedValue: selectedValue,
+          date_time: currentDateTime,
+        };
+        if (inputs && images && location && selectedValue){
+          await AsyncStorage.setItem(`formData_inventory_${uuid_inventory}`, JSON.stringify(formData));
+          showToastSuccess("Agregado exitosamente");    
+          navigation.navigate("HomeScreen")
+        }else{
+          showToastFail('Se deben llenar todos los campos')
+        }        
       } catch (error) {
         console.error('Error saving data:', error);
       }
@@ -126,12 +165,14 @@ const InventoryScreen = () => {
           placeholder="Barrio"
           containerStyle={styles.inputContainer}
           inputStyle={styles.input}
+          value={inputs.barrio}
           onChangeText={(text) => handleInputChange(text, 0)}
         />
         <Input
           placeholder="Altura poste"
           containerStyle={styles.inputContainer}
           inputStyle={styles.input}
+          value={inputs.alturaPoste}
           onChangeText={(text) => handleInputChange(text, 1)}
         />
         <TouchableOpacity key="FotoPoste" onPress={() => pickImage(10)} style={styles.PhotoInventaryButton}>
