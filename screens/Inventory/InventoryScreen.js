@@ -19,16 +19,20 @@ const InventoryScreen = ({ route }) => {
     const [isLoading, setIsLoading] = useState(false);
     const [location, setLocation] = useState(null);
     const [errorMsg, setErrorMsg] = useState(null);
+    const [idValue, setSelectedId] = useState(null);
     const [images, setImages] = useState(Array(selectedValue).fill(null));
     const [inputs, setInputs] = useState(Array(selectedValue).fill(''));
     const [lightInputs, setLigthInputs] = useState(Array(selectedValue).fill(''));
     const navigation = useNavigation()
     const [currentDateTime, setCurrentDateTime] = useState(null);
+    const [isEditing, setIsEditing] = useState(false);
     
 
     useEffect(() => {
       if (route.params?.item) {
-        const { inputs, images, lightInputs, location, selectedValue } = route.params.item.data;        
+        const { id, inputs, images, lightInputs, location, selectedValue } = route.params.item.data;
+        setSelectedId(id);
+        setIsEditing(true);
         setInputs(inputs);
         setLigthInputs(lightInputs);
         setImages(images);
@@ -42,11 +46,12 @@ const InventoryScreen = ({ route }) => {
         for (let i = 0; i < selectedValue; i++) {
           let countInputs = i * 2
           inputs.push(
-            <View style={styles.containerSelected}>
+            <View key={`luminaria-${i}`} style={styles.containerSelected}>
                 <Text style={styles.label}>Luminaria {i + 1}</Text>
                 <Input
                 key={`Serial-${i + 1}`}
                 placeholder={`Serial`}
+                value={lightInputs[(i*2)]}
                 containerStyle={styles.dynamicInputContainer}
                 inputStyle={styles.input}
                 onChangeText={(text) => handleLightInputChange(text, countInputs)}
@@ -54,11 +59,12 @@ const InventoryScreen = ({ route }) => {
                 <Input
                 key={`Collarin-${i + 1}`}
                 placeholder={`Collarin`}
+                value={lightInputs[(i*2)+1]}
                 containerStyle={styles.dynamicInputContainer}
                 inputStyle={styles.input}
                 onChangeText={(text) => handleLightInputChange(text, countInputs + 1)}
                 />
-                <TouchableOpacity onPress={() => pickImage(i)} style={styles.PhotoInventaryButton}>
+                <TouchableOpacity key={`FotoLuminaria-${i}`} onPress={() => pickImage(i)} style={styles.PhotoInventaryButton}>
                     {images[i] ? (
                         <Icon
                         name="check"
@@ -131,32 +137,53 @@ const InventoryScreen = ({ route }) => {
 
 
     const saveData = async () => {
-      try {        
-
-        let uuid_inventory = uuid.v4();
-        let formData = {
-          id: uuid_inventory,
-          inputs: inputs,
-          lightInputs: lightInputs,
-          images: images,
-          location: location,
-          selectedValue: selectedValue,
-          date_time: currentDateTime,
-        };
+      try {
+        let formData = {}
+        let valueSend = null
+        console.log(currentDateTime)
+        if(isEditing){   
+          formData = {
+            id: idValue,
+            inputs: inputs,
+            lightInputs: lightInputs,
+            images: images,
+            location: location,
+            selectedValue: selectedValue,
+            date_time: currentDateTime,
+          };
+          valueSend = idValue
+        }else{
+          let uuid_inventory = uuid.v4();
+          formData = {
+            id: uuid_inventory,
+            inputs: inputs,
+            lightInputs: lightInputs,
+            images: images,
+            location: location,
+            selectedValue: selectedValue,
+            date_time: currentDateTime,
+          };
+          valueSend = uuid_inventory
+        } 
+        
         if (inputs && images && location && selectedValue){
-          await AsyncStorage.setItem(`formData_inventory_${uuid_inventory}`, JSON.stringify(formData));
-          showToastSuccess("Agregado exitosamente");    
+          await AsyncStorage.setItem(`formData_inventory_${valueSend}`, JSON.stringify(formData));
+          if(isEditing){  
+            showToastSuccess("Editado exitosamente");
+          }else{
+            showToastSuccess("Agregado exitosamente");
+          }
           navigation.navigate("HomeScreen")
         }else{
-          showToastFail('Se deben llenar todos los campos')
+          showToastFail('Se deben completar todos los campos')
         }        
       } catch (error) {
         console.error('Error saving data:', error);
       }
     };
 
-    const handleSubmit = () => {
-      saveData();
+    const handleSubmit = () => {      
+        saveData();
     };
   
     return (
@@ -165,14 +192,14 @@ const InventoryScreen = ({ route }) => {
           placeholder="Barrio"
           containerStyle={styles.inputContainer}
           inputStyle={styles.input}
-          value={inputs.barrio}
+          value={inputs[0]}
           onChangeText={(text) => handleInputChange(text, 0)}
         />
         <Input
           placeholder="Altura poste"
           containerStyle={styles.inputContainer}
           inputStyle={styles.input}
-          value={inputs.alturaPoste}
+          value={inputs[1]}
           onChangeText={(text) => handleInputChange(text, 1)}
         />
         <TouchableOpacity key="FotoPoste" onPress={() => pickImage(10)} style={styles.PhotoInventaryButton}>
@@ -211,7 +238,7 @@ const InventoryScreen = ({ route }) => {
         </Picker>
 
         {renderInputs()}
-        <Button title="Guardar Datos" onPress={handleSubmit} />
+        <Button title={isEditing ? "Editar Datos" : "Guardar Datos"} onPress={handleSubmit} />
       </ScrollView>
     );
   };

@@ -56,7 +56,7 @@ const InventoryStackNavigator = createNativeStackNavigator();
         <Tab.Navigator
             initialRouteName="Home"
             screenOptions= {{
-                tabBarActiveTintColor: '#7171F4'
+                tabBarActiveTintColor: '#2289DC'
             }}
         >
             <Tab.Screen name="Home"

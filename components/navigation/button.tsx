@@ -11,7 +11,7 @@ const ButtonDark = ({ text, onPress }: ButtonDarkProps) => (
       
       <Button
       title={text}
-      buttonStyle={{ backgroundColor: 'rgba(39, 39, 39, 1)' }}
+      buttonStyle={{ backgroundColor: 'rgba(34, 137, 220, 1)' }}
       onPress={onPress}
       containerStyle={{
         width: 200,
