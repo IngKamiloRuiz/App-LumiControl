@@ -22,7 +22,7 @@ const StorageScreen = () => {
 
       try {
         const response = await Promise.race([
-          fetch('http://10.0.2.2:8000/api/puntos_luminosos/', {
+          fetch('http://10.0.2.2:8000/api/puntos_luminosos/add/', {
             method: 'POST',
             headers: {
               'Content-Type': 'multipart/form-data',
