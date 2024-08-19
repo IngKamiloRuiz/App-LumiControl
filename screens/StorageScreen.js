@@ -22,8 +22,8 @@ const StorageScreen = () => {
 
       try {
         const response = await Promise.race([
-          fetch('http://10.0.2.2:8000/api/puntos_luminosos/add/', {
-          // fetch('https://seandato-ab16d5fddecb.herokuapp.com/api/puntos_luminosos/add/', {
+          //fetch('http://10.0.2.2:8000/api/puntos_luminosos/add/', {
+          fetch('https://seandato-ab16d5fddecb.herokuapp.com/api/puntos_luminosos/add/', {
             method: 'POST',
             headers: {
               'Content-Type': 'multipart/form-data',
