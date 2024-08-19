@@ -19,14 +19,12 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "android": {
-        "permissions": [
-          "CAMERA",
-          "ACCESS_FINE_LOCATION",
-          "READ_EXTERNAL_STORAGE",
-          "WRITE_EXTERNAL_STORAGE"
-        ]
-      },
+      "permissions": [
+        "CAMERA",
+        "ACCESS_FINE_LOCATION",
+        "READ_EXTERNAL_STORAGE",
+        "WRITE_EXTERNAL_STORAGE"
+      ],
       "package": "com.nomades.lumicontrol"
     },
     "web": {
@@ -42,7 +40,9 @@
         "expo-image-picker",
         {
           "photosPermission": "The app accesses your photos to let you share them with your friends."
-        },
+        }
+      ],
+      [
         "expo-location",
         {
           "locationAlwaysAndWhenInUsePermission": "Allow $(PRODUCT_NAME) to use your location."
