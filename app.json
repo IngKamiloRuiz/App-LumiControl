@@ -18,10 +18,36 @@
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
-      }
+      },
+      "android": {
+        "permissions": [
+          "CAMERA",
+          "ACCESS_FINE_LOCATION",
+          "READ_EXTERNAL_STORAGE",
+          "WRITE_EXTERNAL_STORAGE"
+        ]
+      },
+      "package": "com.nomades.lumicontrol"
     },
     "web": {
       "favicon": "./assets/favicon.png"
-    }
+    },
+    "extra": {
+      "eas": {
+        "projectId": "9e6e9d8f-31df-45be-a056-54c957b7a7fd"
+      }
+    },
+    "plugins": [
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "The app accesses your photos to let you share them with your friends."
+        },
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "Allow $(PRODUCT_NAME) to use your location."
+        }
+      ]
+    ]
   }
 }

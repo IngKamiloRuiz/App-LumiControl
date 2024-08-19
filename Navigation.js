@@ -1,9 +1,9 @@
 import React from "react"
 import {createNativeStackNavigator} from "@react-navigation/native-stack"
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs"
-import HomeScreen from "../lumicontrol/screens/HomeScreen"
-import StorageScreen from "../lumicontrol/screens/StorageScreen"
-import InventoryScreen from "../lumicontrol/screens/Inventory/InventoryScreen"
+import HomeScreen from "./screens/HomeScreen"
+import StorageScreen from "./screens/StorageScreen"
+import InventoryScreen from "./screens/Inventory/InventoryScreen"
 import { NavigationContainer } from "@react-navigation/native"
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import CustomTitle from "./components/navigation/Title"

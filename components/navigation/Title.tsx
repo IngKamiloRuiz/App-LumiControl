@@ -4,10 +4,13 @@ import { Text, View, StyleSheet } from 'react-native';
 const CustomTitle = () => {
   return (
     <View style={styles.titleContainer}>
-        <Text style={styles.titleGreen}>Se</Text>
+        {/* <Text style={styles.titleGreen}>Se</Text>
         <Text style={styles.titleBlue}>an</Text>
         <Text style={styles.titleOrange}>da</Text>
-        <Text style={styles.titleRed}>to</Text>       
+        <Text style={styles.titleRed}>to</Text>        */}
+        <Text style={styles.titleGreen}>No</Text>
+        <Text style={styles.titleBlue}>ma</Text>
+        <Text style={styles.titleOrange}>des</Text>  
     </View>
   );
 };
