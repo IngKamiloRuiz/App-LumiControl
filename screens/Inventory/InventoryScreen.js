@@ -35,7 +35,7 @@ const InventoryScreen = ({ route }) => {
         setSelectedId(id);
         setIsEditing(true);
         setInputs(inputs);
-        setLigthInputs(lightInputs);
+        setLightInputs(lightInputs);
         setImages(images);
         setLocation(location);
         setSelectedValue(selectedValue);
