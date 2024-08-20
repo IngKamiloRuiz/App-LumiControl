@@ -21,9 +21,10 @@ const StorageScreen = () => {
       const timeout = (ms) => new Promise((_, reject) => setTimeout(() => reject(new Error('Request timed out')), ms));
 
       try {
-        const response = await Promise.race([
-          //fetch('http://10.0.2.2:8000/api/puntos_luminosos/add/', {
-          fetch('https://seandato-ab16d5fddecb.herokuapp.com/api/puntos_luminosos/add/', {
+        console.log(formData)
+        const response = await Promise.race([          
+          //fetch('http://10.0.2.2:8000/api/puntos_luminosos/add', {
+          fetch('https://seandato-ab16d5fddecb.herokuapp.com/api/puntos_luminosos/add', {
             method: 'POST',
             headers: {
               'Content-Type': 'multipart/form-data',
@@ -31,7 +32,7 @@ const StorageScreen = () => {
             body: formData,
           }),
           timeout(10000) // 10 segundos
-        ]);        
+        ]);
     
         if (!response.ok) {
           throw new Error('Error en la respuesta del servidor');
@@ -86,15 +87,19 @@ const StorageScreen = () => {
     };
 
     const prepareDataForBackend = (formData) => {
-      const { inputs, lightInputs, images, date_time, location} = formData;   
+      const { inputs, lightInputs, images, date_time, location, sector} = formData;   
       
       const formDataObject = new FormData();
       
       formDataObject.append('barrio', inputs[0]);
       formDataObject.append('altura_poste', inputs[1]);
+      formDataObject.append('direccion', inputs[2]);
+      formDataObject.append('poste', inputs[3]);
+      formDataObject.append('tipo_red', inputs[4]);
+      formDataObject.append('sector', sector === 'Urbano' ? 1 : 2);
       formDataObject.append('latitud', location.coords.latitude);
       formDataObject.append('longitud', location.coords.longitude);
-      formDataObject.append('fecha_instalacion', date_time);
+      formDataObject.append('fecha_captura', date_time);
       if (images.length > 0) {
         formDataObject.append('foto_poste', {
           uri: images[10],
@@ -108,7 +113,10 @@ const StorageScreen = () => {
       for (let i = 0; i < lightInputs.length; i += 2) {        
         luminarias.push({
           serial: lightInputs[i],
-          collarin: lightInputs[i + 1]
+          collarin: lightInputs[i + 1],
+          potencia: lightInputs[i + 2],
+          tipo_luminaria: lightInputs[i + 3],
+          estado: lightInputs[i + 4],
         });
         if (images.length > 0) {
           formDataObject.append(`luminarias[${cont_image}][foto_luminaria]`, {
