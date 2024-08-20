@@ -21,7 +21,6 @@ const StorageScreen = () => {
       const timeout = (ms) => new Promise((_, reject) => setTimeout(() => reject(new Error('Request timed out')), ms));
 
       try {
-        console.log(formData)
         const response = await Promise.race([          
           //fetch('http://10.0.2.2:8000/api/puntos_luminosos/add', {
           fetch('https://seandato-ab16d5fddecb.herokuapp.com/api/puntos_luminosos/add', {
@@ -77,8 +76,8 @@ const StorageScreen = () => {
       const success = await sendDataToBackend(preparedData);
       setLoading(false);
       if (success) {        
-        handleDelete(id);
         showToastSuccess("Enviado exitosamente");
+        handleDelete(id);
         loadAllFormDatas();
       } else {
         showToastFail('Error al enviar, verifique su conexión o comuniquese con el area encargada');
@@ -110,7 +109,7 @@ const StorageScreen = () => {
       
       const luminarias = [];
       let cont_image = 0;
-      for (let i = 0; i < lightInputs.length; i += 2) {        
+      for (let i = 0; i < lightInputs.length; i += 5) {        
         luminarias.push({
           serial: lightInputs[i],
           collarin: lightInputs[i + 1],
