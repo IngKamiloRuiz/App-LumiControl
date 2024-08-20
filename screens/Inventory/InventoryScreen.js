@@ -12,6 +12,7 @@ import { useNavigation } from "@react-navigation/native"
 import showToastSuccess from "../../components/navigation/toastSuccess";
 import showToastFail from "../../components/navigation/toastFail";
 import { format } from 'date-fns';
+import { useMunicipio } from '../../screens/components/municipiesContext';
 
 
 const InventoryScreen = ({ route }) => {
@@ -28,6 +29,7 @@ const InventoryScreen = ({ route }) => {
     const [currentDateTime, setCurrentDateTime] = useState(null);
     const [isEditing, setIsEditing] = useState(false);
     const [status, setStatus] = useState('Activo');
+    const { municipio } = useMunicipio();
 
     useEffect(() => {
       if (route.params?.item) {
@@ -203,6 +205,7 @@ const InventoryScreen = ({ route }) => {
         if(isEditing){   
           formData = {
             id: idValue,
+            municipio: municipio,
             inputs: inputs,
             sector: sector,
             lightInputs: lightInputs,

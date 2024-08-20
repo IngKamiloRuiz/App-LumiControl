@@ -7,7 +7,7 @@
     "icon": "./assets/Logo_Apk.png",
     "userInterfaceStyle": "dark",
     "splash": {
-      "image": "./assets/splash.png",
+      "image": "./assets/cargando.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
@@ -16,7 +16,7 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
+        "foregroundImage": "./assets/Logo_Apk.png",
         "backgroundColor": "#ffffff"
       },
       "permissions": [
@@ -28,7 +28,7 @@
       "package": "com.nomades.lumicontrol"
     },
     "web": {
-      "favicon": "./assets/favicon.png"
+      "favicon": "./assets/Logo_Apk.png"
     },
     "extra": {
       "eas": {

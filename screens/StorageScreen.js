@@ -86,10 +86,11 @@ const StorageScreen = () => {
     };
 
     const prepareDataForBackend = (formData) => {
-      const { inputs, lightInputs, images, date_time, location, sector} = formData;   
+      const { inputs, lightInputs, images, date_time, location, sector, municipio} = formData;   
       
       const formDataObject = new FormData();
       
+      formDataObject.append('municipio', municipio);
       formDataObject.append('barrio', inputs[0]);
       formDataObject.append('altura_poste', inputs[1]);
       formDataObject.append('direccion', inputs[2]);
@@ -153,7 +154,6 @@ const StorageScreen = () => {
         try {
           await AsyncStorage.removeItem(`formData_${formId}`);
           setFormDatas(formDatas.filter(item => item.id !== formId));
-          showToastSuccess("Formulario eliminado exitosamente!");
         } catch (error) {
           showToastFail('Error al eliminar el formulario');
         }

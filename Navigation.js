@@ -40,9 +40,7 @@ const InventoryStackNavigator = createNativeStackNavigator();
         <InventoryStackNavigator.Screen
           name="StorageScreen"
           component={StorageScreen}
-          options={{
-            headerTitle: () => <CustomTitle />
-          }}
+          options={{ title: 'Almacenamiento' }}         
         />        
       </InventoryStackNavigator.Navigator>
 
