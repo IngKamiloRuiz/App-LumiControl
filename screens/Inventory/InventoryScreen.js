@@ -219,6 +219,7 @@ const InventoryScreen = ({ route }) => {
           let uuid_inventory = uuid.v4();
           formData = {
             id: uuid_inventory,
+            municipio: municipio,
             inputs: inputs,            
             sector: sector,
             lightInputs: lightInputs,
