@@ -24,7 +24,7 @@ const InventoryScreen = ({ route }) => {
     const [images, setImages] = useState(Array(selectedValue).fill(null));
     const [inputs, setInputs] = useState(Array(selectedValue).fill(''));
     const [lightInputs, setLightInputs] = useState(Array(selectedValue).fill(''));
-    const [sector, setSector] = useState('Urbano');
+    const [sector, setSector] = useState(Array(selectedValue).fill(null));
     const navigation = useNavigation()
     const [currentDateTime, setCurrentDateTime] = useState(null);
     const [isEditing, setIsEditing] = useState(false);
@@ -33,7 +33,7 @@ const InventoryScreen = ({ route }) => {
 
     useEffect(() => {
       if (route.params?.item) {
-        const { id, inputs, images, lightInputs, location, selectedValue } = route.params.item.data;
+        const { id, inputs, images, lightInputs, location, selectedValue, date_time, sector} = route.params.item.data;
         setSelectedId(id);
         setIsEditing(true);
         setInputs(inputs);
@@ -41,6 +41,8 @@ const InventoryScreen = ({ route }) => {
         setImages(images);
         setLocation(location);
         setSelectedValue(selectedValue);
+        setCurrentDateTime(date_time);
+        setSector(sector);
       }
     }, [route.params]);
 
