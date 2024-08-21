@@ -75,13 +75,13 @@ const InventoryScreen = ({ route }) => {
                   <Picker.Item label="120" value="120" />
                   <Picker.Item label="140" value="140" />
                   <Picker.Item label="160" value="160" />
-                  <Picker.Item label="180" value="160" />
+                  <Picker.Item label="180" value="180" />
                   <Picker.Item label="200" value="200" />
-                  <Picker.Item label="220" value="200" />
+                  <Picker.Item label="220" value="220" />
                   <Picker.Item label="240" value="240" />
-                  <Picker.Item label="260" value="240" />
+                  <Picker.Item label="260" value="260" />
                   <Picker.Item label="280" value="280" />
-                </Picker> 
+                </Picker>
                 <Picker
                   selectedValue={lightInputs[countInputs + 3]}
                   style={styles.picker}
@@ -230,9 +230,14 @@ const InventoryScreen = ({ route }) => {
           valueSend = uuid_inventory
         } 
 
-        console.log(formData)
+        let imagesIsCompleted = true 
+        for (let i = 0; i < selectedValue; i++) {
+          if (!images[i]){
+            imagesIsCompleted = false
+          }
+        }
 
-        if (inputs && images && location && selectedValue && lightInputs){
+        if (inputs.length === 5 && images[10] && imagesIsCompleted && location && lightInputs.length === 5*selectedValue){
           await AsyncStorage.setItem(`formData_inventory_${valueSend}`, JSON.stringify(formData));
           if(isEditing){  
             showToastSuccess("Editado exitosamente");

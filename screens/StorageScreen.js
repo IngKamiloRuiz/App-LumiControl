@@ -30,7 +30,7 @@ const StorageScreen = () => {
             },
             body: formData,
           }),
-          timeout(10000) // 10 segundos
+          timeout(60000) // 60 segundos
         ]);
     
         if (!response.ok) {
@@ -207,6 +207,11 @@ const StorageScreen = () => {
 
     return (
         <View style={styles.container}>
+            <View style={styles.header}>
+              <View style={styles.counterContainer}>
+                <Text style={styles.counterText}>Capturas Realizadas: {formDatas.length}</Text>
+              </View>
+            </View>            
             <FlatList
                 data={formDatas}
                 keyExtractor={item => item.id}
@@ -226,6 +231,24 @@ const styles = StyleSheet.create({
         padding: 10,
         borderBottomWidth: 1,
         borderBottomColor: '#ccc',
+    },
+    header: {
+      flexDirection: 'row',
+      justifyContent: 'flex-end',
+      alignItems: 'center',
+      padding: 10,
+    },
+    counterContainer: {
+      borderWidth: 1,
+      borderColor: '#ddd',
+      borderRadius: 8,
+      paddingHorizontal: 10,
+      paddingVertical: 5,
+      backgroundColor: '#f9f9f9',
+    },
+    counterText: {
+      fontSize: 12,
+      fontWeight: 'bold',
     },
     buttonContainer: {
         flexDirection: 'row',
