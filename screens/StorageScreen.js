@@ -86,11 +86,12 @@ const StorageScreen = () => {
     };
 
     const prepareDataForBackend = (formData) => {
-      const { inputs, lightInputs, images, date_time, location, sector, municipio} = formData;   
+      const { inputs, lightInputs, images, date_time, location, sector, municipio, usuario_crea, observaciones, isObservationsEnabled} = formData;   
       
       const formDataObject = new FormData();
       
       formDataObject.append('municipio', municipio);
+      formDataObject.append('usuario_crea', usuario_crea)
       formDataObject.append('barrio', inputs[0]);
       formDataObject.append('altura_poste', inputs[1]);
       formDataObject.append('direccion', inputs[2]);
@@ -100,6 +101,7 @@ const StorageScreen = () => {
       formDataObject.append('latitud', location.coords.latitude);
       formDataObject.append('longitud', location.coords.longitude);
       formDataObject.append('fecha_captura', date_time);
+      formDataObject.append('observaciones', observaciones);
       if (images.length > 0) {
         formDataObject.append('foto_poste', {
           uri: images[10],

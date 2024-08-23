@@ -28,12 +28,13 @@ const InventoryScreen = ({ route }) => {
     const navigation = useNavigation()
     const [currentDateTime, setCurrentDateTime] = useState(null);
     const [isEditing, setIsEditing] = useState(false);
-    const [status, setStatus] = useState('Activo');
     const { municipio } = useMunicipio();
+    const [isObservationsEnabled, setIsObservationsEnabled] = useState(Array(selectedValue).fill(null));
+    const [observaciones, setObservations] = useState(Array(selectedValue).fill(''));
 
     useEffect(() => {
       if (route.params?.item) {
-        const { id, inputs, images, lightInputs, location, selectedValue, date_time, sector} = route.params.item.data;
+        const { id, inputs, images, lightInputs, location, selectedValue, date_time, sector, observaciones, isObservationsEnabled} = route.params.item.data;
         setSelectedId(id);
         setIsEditing(true);
         setInputs(inputs);
@@ -43,6 +44,8 @@ const InventoryScreen = ({ route }) => {
         setSelectedValue(selectedValue);
         setCurrentDateTime(date_time);
         setSector(sector);
+        setObservations(observaciones);
+        setIsObservationsEnabled(isObservationsEnabled);
       }
     }, [route.params]);
 
@@ -204,6 +207,7 @@ const InventoryScreen = ({ route }) => {
       try {
         let formData = {}
         let valueSend = null
+        const idUsuario = await AsyncStorage.getItem('userId');
         if(isEditing){   
           formData = {
             id: idValue,
@@ -215,6 +219,9 @@ const InventoryScreen = ({ route }) => {
             location: location,
             selectedValue: selectedValue,
             date_time: currentDateTime,
+            usuario_crea: idUsuario,
+            observaciones: observaciones,
+            isObservationsEnabled: isObservationsEnabled
           };
           valueSend = idValue
         }else{
@@ -229,6 +236,9 @@ const InventoryScreen = ({ route }) => {
             location: location,
             selectedValue: selectedValue,
             date_time: currentDateTime,
+            usuario_crea: idUsuario,
+            observaciones: observaciones,
+            isObservationsEnabled: isObservationsEnabled
           };
           valueSend = uuid_inventory
         } 
@@ -364,6 +374,19 @@ const InventoryScreen = ({ route }) => {
         </Picker>
 
         {renderInputs()}
+        <CheckBox
+                title='Agregar Observaciones'
+                checked={isObservationsEnabled}
+                onPress={() => setIsObservationsEnabled(!isObservationsEnabled)}
+            />
+            {isObservationsEnabled && (
+                <Input
+                    placeholder="Observaciones"
+                    value={observaciones}
+                    onChangeText={(text) => setObservations(text)}
+                    containerStyle={styles.observationsInput}
+                />
+            )}
         <Button title={isEditing ? "Editar Datos" : "Guardar Datos"} onPress={handleSubmit} />
       </ScrollView>
     );
