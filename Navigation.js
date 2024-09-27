@@ -4,10 +4,14 @@ import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import HomeScreen from "./screens/HomeScreen";
 import StorageScreen from "./screens/StorageScreen";
 import InventoryScreen from "./screens/Inventory/InventoryScreen";
+import MaintenanceScreen from "./screens/Maintenance/MaintenanceScreen"
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import CustomTitle from "./components/navigation/Title";
 import LoginScreen from "./screens/Login/Login";
 import { useAuth } from './screens/Login/authContext';
+import ReportMaintenance from "./screens/Maintenance/ReportMaintenanceScreen";
+import AttendMaintenance from "./screens/Maintenance/AttendMaintenance";
+import TemporalScreen from "./screens/Temporal/TemporalScreen";
 
 const HomeStack = createNativeStackNavigator();
 const StorageStack = createNativeStackNavigator();
@@ -19,6 +23,12 @@ function HomeStackScreen() {
     <HomeStack.Navigator initialRouteName="HomeScreen">
       <HomeStack.Screen name="HomeScreen" component={HomeScreen} options={{ headerTitle: () => <CustomTitle /> }} />
       <HomeStack.Screen name="Inventory" component={InventoryScreen} options={{ title: 'Inventario' }} />
+      <HomeStack.Screen name="Maintenance" component={MaintenanceScreen} options={{ title: 'Mantenimiento' }} />
+
+      <HomeStack.Screen name="Temporal" component={TemporalScreen} options={{ title: 'Evidencias Pendientes' }} /> 
+
+      <HomeStack.Screen name="AttendMaintenance" component={AttendMaintenance} options={{ title: 'Atender Mantenimiento' }} />
+      <HomeStack.Screen name="ReportMaintenance" component={ReportMaintenance} options={{ title: 'Reportar Falla' }} />      
     </HomeStack.Navigator>
   );
 }

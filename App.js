@@ -5,6 +5,7 @@ import Toast from 'react-native-toast-message';
 import Navigation from "./Navigation";
 import { AuthProvider, useAuth } from './screens/Login/authContext';
 
+
 export default function App() {
   return (
     <AuthProvider>

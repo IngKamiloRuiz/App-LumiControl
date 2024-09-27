@@ -13,6 +13,7 @@ import showToastSuccess from "../../components/navigation/toastSuccess";
 import showToastFail from "../../components/navigation/toastFail";
 import { format } from 'date-fns';
 import { useMunicipio } from '../../screens/components/municipiesContext';
+import * as FileSystem from 'expo-file-system';
 
 
 const InventoryScreen = ({ route }) => {
@@ -188,17 +189,39 @@ const InventoryScreen = ({ route }) => {
     };
 
     const pickImage = async (index) => {
+      try {
+        const freeSpace = await FileSystem.getFreeDiskStorageAsync(); // Obtener el espacio libre en bytes        
+        const minimumSpaceRequired = 1000 * 1024 * 1024; // Ejemplo: 1000 MB
+
+        if (freeSpace < minimumSpaceRequired) {
+          showToastFail('No hay suficiente espacio de almacenamiento disponible.');
+          return;
+        }
+
         let result = await ImagePicker.launchCameraAsync({
           mediaTypes: ImagePicker.MediaTypeOptions.Images,
           allowsEditing: false,
           aspect: [4, 3],
           quality: 1,
         });
-            
+
         if (!result.canceled) {
+          const imageUri = result.assets[0].uri;
+    
+          // Guardar la imagen de manera persistente
+          const fileName = imageUri.split('/').pop(); // Obtener el nombre de la imagen
+          const newPath = `${FileSystem.documentDirectory}${fileName}`;
+          await FileSystem.moveAsync({
+            from: imageUri,
+            to: newPath,
+          });
+    
           let newImages = [...images];
-          newImages[index] = result.assets[0].uri;       
-          setImages(newImages);          
+          newImages[index] = newPath;  // Guardar la nueva ruta persistente en tu estado
+          setImages(newImages);
+        }
+        } catch (error) {
+          showToastFail("Error al capturar la imagen:", error);
         }
       };
 
@@ -272,6 +295,16 @@ const InventoryScreen = ({ route }) => {
   
     return (
       <ScrollView contentContainerStyle={styles.container}>
+        <View style={styles.inputContainer}>
+            <Button key="geolocalizacion" title="Obtener Geolocalización" onPress={getLocation} style={styles.GeoButton}/>
+            {isLoading && <ActivityIndicator size="large" color="#7171F4" />}
+            {location && (
+                <Text style={styles.locationText}>
+                Latitud: {location.coords.latitude}, Longitud: {location.coords.longitude}
+                </Text>
+            )}
+            {errorMsg && <Text style={styles.errorText}>{errorMsg}</Text>}
+        </View>
         <Input
           placeholder="Barrio"
           containerStyle={styles.inputContainer}
@@ -337,17 +370,7 @@ const InventoryScreen = ({ route }) => {
             containerStyle={styles.radioButton}
             textStyle={styles.radioText}
           />
-        </View>
-        <View style={styles.inputContainer}>
-            <Button key="geolocalizacion" title="Obtener Geolocalización" onPress={getLocation} style={styles.GeoButton}/>
-            {isLoading && <ActivityIndicator size="large" color="#7171F4" />}
-            {location && (
-                <Text style={styles.locationText}>
-                Latitud: {location.coords.latitude}, Longitud: {location.coords.longitude}
-                </Text>
-            )}
-            {errorMsg && <Text style={styles.errorText}>{errorMsg}</Text>}
-        </View>
+        </View>        
         <TouchableOpacity key="FotoPoste" onPress={() => pickImage(10)} style={styles.PhotoInventaryButton}>
             {images[10] ? (
                 <Icon

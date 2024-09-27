@@ -41,6 +41,14 @@ const HomeScreen = () => {
         }
       };
 
+      const handlePressMaintenance = () => {
+        if (municipio) {
+            navigation.navigate("Maintenance");
+        } else {
+            showToastFail('Por favor selecciona un municipio antes de continuar.')
+        }
+      };
+
     const confirmDelete = (id) => {
         Alert.alert(
             'Confirmación',
@@ -77,13 +85,13 @@ const HomeScreen = () => {
             <View style={styles.buttonsContainer}>
                 <View style={styles.stepContainer}>
                     <ButtonDark text="Inventario" onPress={handlePress}/> 
-                </View>
-                {/* <View style={styles.stepContainer}>
-                    <ButtonDark text="Instalación" onPress={() => navigation.navigate("Inventory")}/> 
-                </View>
-                <View style={styles.stepContainer}>
-                    <ButtonDark text="Mantenimiento" onPress={() => navigation.navigate("Inventory")}/> 
+                </View>                
+                {/*<View style={styles.stepContainer}>
+                    <ButtonDark text="Mantenimiento" onPress={handlePressMaintenance}/> 
                 </View> */}
+                <View style={styles.stepContainer}>
+                    <ButtonDark text="Evidencias Pendientes" onPress={() => navigation.navigate("Temporal")}/> 
+                </View>
             </View>
             <View>
                 <Button title="Logout" onPress={confirmDelete} />

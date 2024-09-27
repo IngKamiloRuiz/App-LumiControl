@@ -4,11 +4,14 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation, useFocusEffect } from "@react-navigation/native"
 import showToastSuccess from "../components/navigation/toastSuccess";
 import showToastFail from "../components/navigation/toastFail";
+import { API_URL_DEVELOPMENT, API_URL_PRODUCTION } from '@env';
+import * as FileSystem from 'expo-file-system';
 
 const StorageScreen = () => {
     const [formDatas, setFormDatas] = useState([]);
     const navigation = useNavigation();
     const [loading, setLoading] = useState(false);
+    const apiUrl = __DEV__ ? API_URL_DEVELOPMENT : API_URL_PRODUCTION;
 
     useFocusEffect(
       React.useCallback(() => {
@@ -17,13 +20,11 @@ const StorageScreen = () => {
     );
 
     const sendDataToBackend = async (formData) => {
-
       const timeout = (ms) => new Promise((_, reject) => setTimeout(() => reject(new Error('Request timed out')), ms));
-
+    
       try {
         const response = await Promise.race([          
-          //fetch('http://10.0.2.2:8000/api/puntos_luminosos/add', {
-          fetch('https://seandato-ab16d5fddecb.herokuapp.com/api/puntos_luminosos/add', {
+          fetch(`${apiUrl}puntos_luminosos/add`, {
             method: 'POST',
             headers: {
               'Content-Type': 'multipart/form-data',
@@ -38,40 +39,43 @@ const StorageScreen = () => {
         }
     
         const responseData = await response.json();
-        console.log('Data enviada exitosamente:', responseData);
+        showToastSuccess('Data enviada exitosamente:', responseData);
         return true;
       } catch (error) {
-        showToastFail('Error enviando datos, no se obtuvo conexión con el servidor.')
+        if (error.message === 'Request timed out') {
+          showToastFail('Error: El tiempo de espera de la solicitud ha expirado.');
+        } else {
+          showToastFail('Error enviando datos, no se obtuvo conexión con el servidor.');
+        }
         return false;
       }
     };
-
+    
     const handleSendAll = async () => {
       if (formDatas && formDatas.length > 0){
-        for (const formData of formDatas) {
-          let id = 'inventory_' + formData.data.id
-          const preparedData = prepareDataForBackend(formData.data);
-          setLoading(true);
-          const success = await sendDataToBackend(preparedData);
-          setLoading(false);
+        setLoading(true);
+        for (const formData of formDatas) {          
+          let id = 'inventory_' + formData.data.id;
+          const preparedData = await prepareDataForBackend(formData.data);          
+          const success = await sendDataToBackend(preparedData);          
           if (success) {
-            handleDelete(id)
+            handleDelete(id);
             showToastSuccess("Enviado exitosamente");
             loadAllFormDatas();
           } else {
-            showToastFail('Error al enviar, verifique su conexión o comuniquese con el area encargada')
+            showToastFail('Error al enviar todos los datos, verifique su conexión o comuníquese con el área encargada.');
             loadAllFormDatas();
           }
         }
-      }else{
-        showToastFail('No hay datos disponibles para enviar.')
+        setLoading(false);
+      } else {
+        showToastFail('No hay datos disponibles para enviar.');
       }
-      
     };
-
+    
     const handleSend = async (formData) => {
-      let id = 'inventory_' + formData.data.id
-      const preparedData = prepareDataForBackend(formData.data);
+      let id = 'inventory_' + formData.data.id;
+      const preparedData = await prepareDataForBackend(formData.data);
       setLoading(true);
       const success = await sendDataToBackend(preparedData);
       setLoading(false);
@@ -80,86 +84,144 @@ const StorageScreen = () => {
         handleDelete(id);
         loadAllFormDatas();
       } else {
-        showToastFail('Error al enviar, verifique su conexión o comuniquese con el area encargada');
+        showToastFail('Error al enviar el formulario, verifique su conexión o comuníquese con el área encargada.');
         loadAllFormDatas();
       }
     };
-
-    const prepareDataForBackend = (formData) => {
-      const { inputs, lightInputs, images, date_time, location, sector, municipio, usuario_crea, observaciones, isObservationsEnabled} = formData;   
-      
-      const formDataObject = new FormData();
-      
-      formDataObject.append('municipio', municipio);
-      formDataObject.append('usuario_crea', usuario_crea)
-      formDataObject.append('barrio', inputs[0]);
-      formDataObject.append('altura_poste', inputs[1]);
-      formDataObject.append('direccion', inputs[2]);
-      formDataObject.append('poste', inputs[3]);
-      formDataObject.append('tipo_red', inputs[4]);
-      formDataObject.append('sector', sector === 'Urbano' ? 1 : 2);
-      formDataObject.append('latitud', location.coords.latitude);
-      formDataObject.append('longitud', location.coords.longitude);
-      formDataObject.append('fecha_captura', date_time);
-      formDataObject.append('observaciones', observaciones);
-      if (images.length > 0) {
-        formDataObject.append('foto_poste', {
-          uri: images[10],
-          name: 'foto_poste.jpg',
-          type: 'image/jpeg'
-        });
-      }
-      
-      const luminarias = [];
-      let cont_image = 0;
-      for (let i = 0; i < lightInputs.length; i += 5) {        
-        luminarias.push({
-          serial: lightInputs[i],
-          collarin: lightInputs[i + 1],
-          potencia: lightInputs[i + 2],
-          tipo_luminaria: lightInputs[i + 3],
-          estado: lightInputs[i + 4],
-        });
-        if (images.length > 0) {
-          formDataObject.append(`luminarias[${cont_image}][foto_luminaria]`, {
-            uri: images[cont_image],
-            name: `foto_luminaria_${cont_image}.jpg`,
-            type: 'image/jpeg'
-          });
-        }
-        cont_image += 1
-      }
-
-      formDataObject.append('luminarias', JSON.stringify(luminarias));
     
-      return formDataObject;
-    };
+    const prepareDataForBackend = async (formData) => {
+      try {
+        const { inputs, lightInputs, images, date_time, location, sector, municipio, usuario_crea, observaciones } = formData;
+      
+        const formDataObject = new FormData();
+      
+        formDataObject.append('municipio', municipio);
+        formDataObject.append('usuario_crea', usuario_crea);
+        formDataObject.append('barrio', inputs[0]);
+        formDataObject.append('altura_poste', inputs[1]);
+        formDataObject.append('direccion', inputs[2]);
+        formDataObject.append('poste', inputs[3]);
+        formDataObject.append('tipo_red', inputs[4]);
+        formDataObject.append('sector', sector === 'Urbano' ? 1 : 2);
+        formDataObject.append('latitud', location.coords.latitude);
+        formDataObject.append('longitud', location.coords.longitude);
+        formDataObject.append('fecha_captura', date_time);
+        formDataObject.append('observaciones', observaciones);
+      
+        if (images.length > 10) {
+          try {
+            const mainImageExists = await FileSystem.getInfoAsync(images[10]);
+            if (mainImageExists.exists) {
+              formDataObject.append('foto_poste', {
+                uri: images[10],
+                name: 'foto_poste.jpg',
+                type: 'image/jpeg'
+              });
+            } else {
+              showToastFail('La imagen foto_poste no fue encontrada.');
+              return null;
+            }
+          } catch (error) {
+            showToastFail('Error al verificar la existencia de foto_poste.');
+            return null;
+          }
+        } else {
+          showToastFail('No se encontró imagen de poste en la posición esperada.');
+          return null;
+        }
 
+        const luminarias = [];
+        let cont_image = 0;
+    
+        for (let i = 0; i < lightInputs.length; i += 5) {        
+          luminarias.push({
+            serial: lightInputs[i],
+            collarin: lightInputs[i + 1],
+            potencia: lightInputs[i + 2],
+            tipo_luminaria: lightInputs[i + 3],
+            estado: lightInputs[i + 4],
+          });
+    
+          // Manejar la imagen de cada luminaria
+          if (images.length > cont_image) {
+            try {
+              const luminariaImageExists = await FileSystem.getInfoAsync(images[cont_image]);
+              if (luminariaImageExists.exists) {
+                formDataObject.append(`luminarias[${cont_image}][foto_luminaria]`, {
+                  uri: images[cont_image],
+                  name: `foto_luminaria_${cont_image}.jpg`,
+                  type: 'image/jpeg'
+                });
+              } else {
+                showToastFail(`La imagen de luminaria ${cont_image + 1} no fue encontrada`);
+                return null;
+              }
+            } catch (error) {
+              showToastFail(`Error al verificar la existencia de la imagen de luminaria ${cont_image + 1}`);
+              return null;
+            }
+          }
+    
+          cont_image += 1;
+        }
+    
+        formDataObject.append('luminarias', JSON.stringify(luminarias));
+    
+        return formDataObject;
+      } catch (error) {
+        showToastFail('Error al preparar los datos para el backend. Verifique el formulario.');
+        throw error;
+      }
+    };
+    
     const loadAllFormDatas = async () => {
-        try {
+      try {
         const keys = await AsyncStorage.getAllKeys();
         const formDataKeys = keys.filter(key => key.startsWith('formData_'));
-        const formDatas = await AsyncStorage.multiGet(formDataKeys);        
-
+        const formDatas = await AsyncStorage.multiGet(formDataKeys);
+    
         const parsedFormDatas = formDatas.map(([key, value]) => ({
-            id: key.replace('formData_', ''),
-            data: JSON.parse(value),
+          id: key.replace('formData_', ''),
+          data: JSON.parse(value),
         }));
-
+    
         setFormDatas(parsedFormDatas);
-        } catch (error) {
-        console.error('Error al cargar los formularios:', error);
-        }
+      } catch (error) {
+        showToastFail('Error al cargar los formularios almacenados.');
+      }
     };
+    
 
     const handleDelete = async (formId) => {
-        try {
-          await AsyncStorage.removeItem(`formData_${formId}`);
-          setFormDatas(formDatas.filter(item => item.id !== formId));
-        } catch (error) {
-          showToastFail('Error al eliminar el formulario');
+      try {
+        // Obtener los datos del formulario desde AsyncStorage
+        const formDataString = await AsyncStorage.getItem(`formData_${formId}`);
+        const formData = formDataString ? JSON.parse(formDataString) : null;
+    
+        if (formData && formData.images) {
+          // Eliminar cada imagen almacenada localmente
+          for (const imageUri of formData.images) {
+            if (imageUri) {  // Verifica que la imagen no sea null o undefined
+              try {
+                // Verifica si la imagen existe antes de intentar eliminarla
+                const imageExists = await FileSystem.getInfoAsync(imageUri);
+                if (imageExists.exists) {
+                  await FileSystem.deleteAsync(imageUri);
+                }
+              } catch (imageError) {
+                showToastFail(`Error al eliminar la imagen ${imageUri}:`, imageError);
+              }
+            }
+          }
         }
-      };
+    
+        // Eliminar el formulario del AsyncStorage
+        await AsyncStorage.removeItem(`formData_${formId}`);
+        setFormDatas(formDatas.filter(item => item.id !== formId));
+      } catch (error) {
+        showToastFail('Error al eliminar el formulario o las imágenes');
+      }
+    };
     
     const handleEdit = (item) => {
     navigation.navigate('Inventory', { item });

@@ -4,7 +4,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 const MunicipioContext = createContext();
 
 export const MunicipioProvider = ({ children }) => {
-  const [municipio, setMunicipio] = useState('Garzón');
+  const [municipio, setMunicipio] = useState('1');
 
   useEffect(() => {
     const loadMunicipio = async () => {

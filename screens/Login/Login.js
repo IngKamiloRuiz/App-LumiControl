@@ -3,12 +3,14 @@ import { View, Text, StyleSheet, TextInput, Button, Alert, SafeAreaView, Touchab
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from "@react-navigation/native";
 import { useAuth } from '../Login/authContext';
+import { API_URL_DEVELOPMENT, API_URL_PRODUCTION } from '@env';
 
 export default function LoginScreen() {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const navigation = useNavigation();
     const { login } = useAuth();
+    const apiUrl = __DEV__ ? API_URL_DEVELOPMENT : API_URL_PRODUCTION;
 
     const handleLogin = async () => {
         
@@ -22,8 +24,7 @@ export default function LoginScreen() {
             );
 
             const response = await Promise.race([
-                //fetch('http://10.0.2.2:8000/api/token/', {
-                fetch('https://seandato-ab16d5fddecb.herokuapp.com/api/token/', {
+                fetch(`${apiUrl}token/`, {
                   method: 'POST',
                   headers: {
                     'Content-Type': 'application/json',
@@ -37,8 +38,7 @@ export default function LoginScreen() {
 
             const token = data.access
 
-            //const response_user = await fetch('http://10.0.2.2:8000/api/user/', {
-            const response_user = await fetch('https://seandato-ab16d5fddecb.herokuapp.com/api/user/', {
+            const response_user = await fetch(`${apiUrl}user/`, {
                 method: 'GET',
                 headers: {
                     'Authorization': `Bearer ${token}`,
