@@ -274,6 +274,13 @@ const InventoryScreen = ({ route }) => {
         }
 
         if (inputs.length === 5 && images[10] && imagesIsCompleted && location && lightInputs.length === 5*selectedValue){
+          const freeSpace = await FileSystem.getFreeDiskStorageAsync(); // Obtener el espacio libre en bytes        
+          const minimumSpaceRequired = 1000 * 1024 * 1024; // Ejemplo: 1000 MB
+
+          if (freeSpace < minimumSpaceRequired) {
+            showToastFail('No hay suficiente espacio de almacenamiento disponible.');
+            return;
+          }
           await AsyncStorage.setItem(`formData_inventory_${valueSend}`, JSON.stringify(formData));
           if(isEditing){  
             showToastSuccess("Editado exitosamente");

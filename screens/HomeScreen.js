@@ -86,12 +86,12 @@ const HomeScreen = () => {
                 <View style={styles.stepContainer}>
                     <ButtonDark text="Inventario" onPress={handlePress}/> 
                 </View>                
-                {/*<View style={styles.stepContainer}>
-                    <ButtonDark text="Mantenimiento" onPress={handlePressMaintenance}/> 
-                </View> */}
                 <View style={styles.stepContainer}>
-                    <ButtonDark text="Evidencias Pendientes" onPress={() => navigation.navigate("Temporal")}/> 
+                    <ButtonDark text="Mantenimiento" onPress={handlePressMaintenance}/> 
                 </View>
+                {/* <View style={styles.stepContainer}>
+                    <ButtonDark text="Evidencias Pendientes" onPress={() => navigation.navigate("Temporal")}/> 
+                </View> */}
             </View>
             <View>
                 <Button title="Logout" onPress={confirmDelete} />
