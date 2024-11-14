@@ -319,8 +319,10 @@ const pickImage = async () => {
               to: newPath,
           });
 
+          await saveFilePath(newPath);
+
           // Agregar la nueva imagen al arreglo de imágenes
-          setImages(prevImages => [...prevImages, newPath]);
+          setImages(prevImages => [...prevImages, { uri: newPath, name: fileName }]);
       }
   } catch (error) {
       showToastFail("Error al capturar la imagen:", error);
@@ -352,6 +354,8 @@ const handleUploadFile = async () => {
                         from: asset.uri,
                         to: newPath,
                     });
+
+                    await saveFilePath(newPath);
 
                     return {
                         uri: newPath, // Guardamos la ruta persistente
@@ -425,44 +429,48 @@ const sendLocalChanges = async () => {
       // Agregar el JSON serializado al FormData
       formData.append('mantenimientos', JSON.stringify(mantenimientoData));
 
+      
+
       // Agregar archivos al FormData
       changedMaintenancePoints.forEach((point, index) => {
           point.data_registro.forEach((registro, regIndex) => {
-              // Adjuntar imágenes
               registro.images?.forEach((image, imgIndex) => {
-                  if (image && image.uri) {  // Verificar que `image` y `image.uri` existan
+                  if (image?.uri && image?.name) {
                       formData.append(
-                          `mantenimientos_images_${index}_${regIndex}_${imgIndex}`,  // Nombre único para cada imagen
+                          `mantenimientos_images_${point.id}_${regIndex}_${imgIndex}`,
                           {
-                              uri: image.uri.startsWith('file://') ? image.uri : `file://${image.uri}`,
-                              name: image.name || `image_${imgIndex}.jpg`,
+                              uri: image.uri,
+                              name: image.name,
                               type: 'image/jpeg',
                           }
                       );
+                  } else {
+                      console.warn(`La imagen en el índice ${imgIndex} no tiene un archivo válido.`);
                   }
               });
 
+              const soporteFilesFlattened = registro.soporteFiles ? registro.soporteFiles.flat() : [];
+      
               // Adjuntar archivos de soporte
-              registro.soporteFiles?.forEach((file, fileIndex) => {
-                  if (file && file.uri) {  // Verificar que `file` y `file.uri` existan
+              soporteFilesFlattened.forEach((file, fileIndex) => {
+                  if (file?.uri && file?.name) {
                       formData.append(
-                          `mantenimientos_files_${index}_${regIndex}_${fileIndex}`,  // Nombre único para cada archivo de soporte
+                          `mantenimientos_files_${point.id}_${regIndex}_${fileIndex}`,
                           {
-                              uri: file.uri.startsWith('file://') ? file.uri : `file://${file.uri}`,
-                              name: file.name || `file_${fileIndex}.pdf`,
+                              uri: file.uri,
+                              name: file.name,
                               type: 'application/pdf',
                           }
                       );
+                  } else {
+                      console.warn(`El archivo de soporte en el índice ${fileIndex} no tiene un archivo válido.`);
                   }
               });
           });
       });
 
       const response = await fetch(`${apiUrl}mantenimientos/actualizar-cambios`, {
-          method: 'POST',
-          headers: {
-              'Content-Type': 'multipart/form-data',  // Especificamos multipart/form-data para enviar archivos y JSON
-          },
+          method: 'POST',          
           body: formData,
       });
 
@@ -470,6 +478,8 @@ const sendLocalChanges = async () => {
           showToastSuccess("Cambios enviados exitosamente");
           await AsyncStorage.removeItem('changedMaintenances');
           setChangedMaintenancePoints([]);
+          await clearMaintenanceFilesFromStorage();
+          setCompletedCount(0)
           return true;
       } else {
           showToastFail("Error al enviar los cambios al backend.");
@@ -482,7 +492,46 @@ const sendLocalChanges = async () => {
   }
 };
 
+const saveFilePath = async (filePath) => {
+  try {
+    const existingFiles = await AsyncStorage.getItem('maintenanceFiles');
+    const files = existingFiles ? JSON.parse(existingFiles) : [];
+    files.push(filePath);
+    await AsyncStorage.setItem('maintenanceFiles', JSON.stringify(files));
+  } catch (error) {
+    console.error("Error al guardar la ruta del archivo:", error);
+  }
+};
 
+const clearMaintenanceFilesFromStorage = async () => {
+  try {
+    const files = await AsyncStorage.getItem('maintenanceFiles');
+    if (files) {
+      const filePaths = JSON.parse(files);
+
+      // Eliminar cada archivo registrado
+      for (const filePath of filePaths) {
+        await FileSystem.deleteAsync(filePath, { idempotent: true });
+      }
+
+      // Limpiar la lista de archivos en AsyncStorage
+      await AsyncStorage.removeItem('maintenanceFiles');
+      console.log("Archivos de mantenimiento eliminados exitosamente.");
+    }
+  } catch (error) {
+    console.error("Error al eliminar archivos de mantenimiento:", error);
+  }
+};
+
+const formatTime = (timeString) => {
+  if (!timeString) return ''; // Verificar que timeString exista
+  try {
+    const [hours, minutes] = timeString.split(':'); // Dividir en horas y minutos
+    return `${hours}:${minutes}`; // Devolver en formato "HH:MM"
+  } catch {
+    return `${new Date(timeString).toLocaleTimeString()}`
+  }  
+};
 
   const clearStorage = async () => {
     try {
@@ -735,10 +784,11 @@ const sendLocalChanges = async () => {
 
           {/* Sección para las tarjetas */}
           <View style={styles.cardsContainer}>
-            {selectedPoint.data_registro.map((registro, index) => (
-              <View style={styles.card}>
+            {selectedPoint.data_registro.map((registro, index) => (              
+              <View style={styles.card} key={index}>
                 <Text style={styles.cardHeader}>
-                    {tipo_atencion[registro.tipo_atencion]} {registro.tipo_atencion === 1 ? '' : `${new Date(registro.hora_inicio).toLocaleTimeString()} - ${new Date(registro.hora_finalizacion).toLocaleTimeString()}`}
+                  {tipo_atencion[registro.tipo_atencion]} 
+                  {registro.tipo_atencion === 1 ? '' : ` ${formatTime(registro.hora_inicio)} - ${formatTime(registro.hora_finalizacion)}`}
                 </Text>
                 <Text style={styles.cardDescription}>
                     Descripción: {registro.reporte_tecnico}
@@ -761,9 +811,9 @@ const sendLocalChanges = async () => {
                 />
             )}
           </View>
-          {/* Botón temporal para limpiar AsyncStorage*/} 
+          {/* Botón temporal para limpiar AsyncStorage 
             <Button title="Limpiar Almacenamiento" onPress={clearStorage} />
-            
+            */}
         </View>
       )}
   </ScrollView>
