@@ -469,10 +469,17 @@ const sendLocalChanges = async () => {
           });
       });
 
-      const response = await fetch(`${apiUrl}mantenimientos/actualizar-cambios`, {
+      setIsLoading(true);
+
+      const timeout = (ms) => new Promise((_, reject) => setTimeout(() => reject(new Error('Request timed out')), ms));
+      
+      const response = await Promise.race([          
+        fetch(`${apiUrl}mantenimientos/actualizar-cambios`, {
           method: 'POST',          
           body: formData,
-      });
+        }),
+        timeout(30000)
+      ]);
 
       if (response.ok) {
           showToastSuccess("Cambios enviados exitosamente");
@@ -480,14 +487,15 @@ const sendLocalChanges = async () => {
           setChangedMaintenancePoints([]);
           await clearMaintenanceFilesFromStorage();
           setCompletedCount(0)
+          setIsLoading(false);
           return true;
       } else {
           showToastFail("Error al enviar los cambios al backend.");
           return false;
       }
   } catch (error) {
-      console.error("Error al enviar los cambios:", error);
-      showToastFail("Error al enviar los cambios.");
+      setIsLoading(false);
+      showToastFail("No se obtuvo conexión con el servidor.");
       return false;
   }
 };
@@ -545,19 +553,24 @@ const formatTime = (timeString) => {
     return (
     <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
       <View style={styles.buttonContainer}>
-        {/* Mostrar el botón solo si los datos no han sido cargados */}
-        {!isLoading && !dataLoaded && (
-            <Button title="Obtener Mantenimientos Pendientes" onPress={getMaintenances} />
-        )}
+       { maintenancePoints.length === 0 ?
+          <>
+          {/* Mostrar el botón solo si los datos no han sido cargados */}      
+          <Button title="Obtener Mantenimientos Pendientes" onPress={getMaintenances} />
+          </>
+        :
+          <>
+          <Icon
+              name="refresh"
+              type="font-awesome"
+              color="black"
+              size={24}
+              containerStyle={styles.refreshIcon}
+              onPress={handleReloadData}
+          />
+          </>
+       }
       </View>
-      <Icon
-          name="refresh"
-          type="font-awesome"
-          color="black"
-          size={24}
-          containerStyle={styles.refreshIcon}
-          onPress={handleReloadData}
-      />
 
       {/* Mostrar loading mientras se obtienen datos */}
       {isLoading && (
@@ -574,7 +587,7 @@ const formatTime = (timeString) => {
       )}
 
       {/* Mostrar mapa si hay puntos de mantenimiento */}
-      {maintenancePoints.length > 0 && (
+      {maintenancePoints.length > 0 && !isLoading && (
       <View style={styles.mapContainer}>
           <MapScreen
               nearbyPoints={maintenancePoints.filter(point => point.estado !== 5)} // Filtrar los finalizados
@@ -584,7 +597,7 @@ const formatTime = (timeString) => {
       )}
 
       {/* Mostrar información del punto seleccionado */}
-      {selectedPoint && (
+      {selectedPoint&& !isLoading && (
         <View>
           <View style={styles.items}>
             <View style={styles.imageContainer}>
@@ -813,7 +826,7 @@ const formatTime = (timeString) => {
           </View>
           {/* Botón temporal para limpiar AsyncStorage 
             <Button title="Limpiar Almacenamiento" onPress={clearStorage} />
-            */}
+          */}
         </View>
       )}
   </ScrollView>
