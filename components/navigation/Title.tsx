@@ -24,6 +24,8 @@ const CustomTitle = () => {
         items={[
           { label: 'Garzón', value: '1' },
           { label: 'Palermo', value: '2' },
+          { label: 'Soracá', value: '3' },
+          { label: 'Sutamarchán', value: '4' },
         ]}
         value={municipio}
         style={pickerSelectStyles}

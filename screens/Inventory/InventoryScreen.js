@@ -14,6 +14,7 @@ import showToastFail from "../../components/navigation/toastFail";
 import { format } from 'date-fns';
 import { useMunicipio } from '../../screens/components/municipiesContext';
 import * as FileSystem from 'expo-file-system';
+import MapScreenInventory from "./components/MapScreenInventory";
 
 
 const InventoryScreen = ({ route }) => {
@@ -188,6 +189,18 @@ const InventoryScreen = ({ route }) => {
         }
     };
 
+    const handleLocationConfirm = (locationSelected) => {
+      const updatedLocation = {
+        ...location,
+        coords: {
+            ...location.coords,
+            latitude: locationSelected.latitude,
+            longitude: locationSelected.longitude,
+        },
+      };
+      setLocation(updatedLocation)
+    };
+
     const pickImage = async (index) => {
       try {
         const freeSpace = await FileSystem.getFreeDiskStorageAsync(); // Obtener el espacio libre en bytes        
@@ -311,6 +324,12 @@ const InventoryScreen = ({ route }) => {
                 </Text>
             )}
             {errorMsg && <Text style={styles.errorText}>{errorMsg}</Text>}
+            {/* Mostrar el mapa solo si tenemos los puntos cercanos y la ubicación */}
+            {location && (
+                <View style={styles.mapContainer}>
+                    <MapScreenInventory currentlyPoint={location} onConfirm={handleLocationConfirm}/>
+                </View>
+            )}
         </View>
         <Input
           placeholder="Barrio"
@@ -486,6 +505,10 @@ const InventoryScreen = ({ route }) => {
     radioText: {
       fontSize: 16,
     },
+    mapContainer: {
+      flex: 1,
+      padding: 10,
+  },
   });
 
 export default InventoryScreen;
