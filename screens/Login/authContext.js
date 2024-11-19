@@ -16,6 +16,8 @@ export function AuthProvider({ children }) {
   }, []);
 
   const login = async (token) => {
+    const currentDate = new Date();
+    await AsyncStorage.setItem('dateLogin', currentDate.toISOString())
     await AsyncStorage.setItem('userToken', token);
     setIsAuthenticated(true);
   };

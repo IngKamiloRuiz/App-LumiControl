@@ -18,6 +18,21 @@ const HomeScreen = () => {
         const fetchUser = async () => {
             try {
                 const userName = await AsyncStorage.getItem('userName');
+                const dateLoginString = await AsyncStorage.getItem('dateLogin');
+                if (dateLoginString) {
+                    const dateLogin = new Date(dateLoginString); // Convierte la cadena a un objeto Date
+                    const currentDate = new Date();
+
+                    // Sumar 8 días a la fecha de inicio de sesión
+                    const newDate = new Date(dateLogin);
+                    newDate.setDate(dateLogin.getDate() + 8);
+
+                    // Validar si la fecha actual es mayor que la nueva fecha
+                    if (currentDate > newDate) {
+                        showToastFail('Se ha vencido el tiempo de autenticación. Por favor, vuelve a ingresar.');
+                        logout();
+                    }
+                }
                 if (userName) {
                     setUser(userName);
                 } else {
