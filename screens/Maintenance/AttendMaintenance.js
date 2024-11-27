@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import {View, Text, StyleSheet, ScrollView, ActivityIndicator, Image, TextInput, TouchableOpacity, Switch } from "react-native";
+import {View, Text, StyleSheet, ScrollView, ActivityIndicator, Image, TextInput, TouchableOpacity, Switch, FlatList } from "react-native";
 import { Input, Icon, CheckBox } from '@rneui/themed';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import DateTimePicker from '@react-native-community/datetimepicker';
@@ -16,6 +16,7 @@ import MapScreen from './components/MapScreen';
 import { useMunicipio } from '../components/municipiesContext';
 import * as FileSystem from 'expo-file-system';
 import { API_URL_DEVELOPMENT, API_URL_PRODUCTION } from '@env';
+import { MaterialIcons } from '@expo/vector-icons';
 
 const estados = {
   1: 'Pendiente por punto',
@@ -67,6 +68,7 @@ const AttendMaintenance = () => {
   const [fechaAtencion, setFechaAtencion] = useState(new Date());
   const [horaInicio, setHoraInicio] = useState(new Date());
   const [horaFin, setHoraFin] = useState(new Date());
+  const [materiales, setMateriales] = useState(false);
   const [pendiente, setPendiente] = useState(false);
   const [agregarSoportes, setAgregarSoportes] = useState(false);
   const [pendienteDescripcion, setPendienteDescripcion] = useState('');
@@ -81,9 +83,49 @@ const AttendMaintenance = () => {
   const [toSend, setToSend] = useState([]);
   const isFinalizado = selectedPoint?.estado === 5;
 
+  //Para logica de materiales
+  const [cantidad, setCantidad] = useState("");
+  const [producto, setProducto] = useState("");
+  const [marca, setMarca] = useState("");
+  const [otroProducto, setOtroProducto] = useState("");
+  const [showMarcaSelect, setShowMarcaSelect] = useState(false);
+  const [showOtherInput, setShowOtherInput] = useState(false);
+  const [materialesList, setMaterialesList] = useState([]);
+
   // Maneja la lógica de habilitar o deshabilitar campos
   const isFullFormEnabled = checked === 'inspeccion' || checked === 'atencion';
   const isDescriptionOnly = checked === 'novedad' || checked === 'finalizar';
+
+  const dataProductos = [
+    { id: "1", nombre: "Proyector", marca_producto: true },
+    { id: "2", nombre: "Fotocelda", marca_producto: false },
+    { id: "otro", nombre: "Otro", marca_producto: false },
+  ];
+
+  const dataMarcas = [
+    { id: "1", nombre: "Sylvania" },
+    { id: "2", nombre: "Philips" },
+  ];
+
+  const handleAddMaterial = () => {
+    if (cantidad && (producto || otroProducto)) {
+      setMaterialesList([
+        ...materialesList,
+        { cantidad, producto, marca, otroProducto },
+      ]);
+      setCantidad("");
+      setProducto("");
+      setMarca("");
+      setOtroProducto("");
+      setShowMarcaSelect(false);
+      setShowOtherInput(false);
+    }
+  };
+
+  const handleRemoveMaterial = (index) => {
+    const updatedList = materialesList.filter((_, i) => i !== index);
+    setMaterialesList(updatedList);
+  };
   
 
   useEffect(() => {
@@ -744,6 +786,94 @@ const formatTime = (timeString) => {
                 )}
                 </View>
             </View>
+            <View style={styles.container}>
+              <View style={styles.switchContainer}>
+                <Text style={styles.label}>¿Materiales?</Text>
+                <Switch value={materiales} onValueChange={setMateriales} />
+              </View>
+
+              {materiales && (
+                <>
+                  {/* Inputs para agregar materiales */}
+                  <View style={styles.inputContainer}>
+                    {/* Campo de cantidad */}
+                    <TextInput
+                      style={[styles.input, styles.smallInput]}
+                      placeholder="Cantidad"
+                      value={cantidad}
+                      keyboardType="numeric"
+                      onChangeText={setCantidad}
+                    />
+
+                    {/* Campo de producto */}
+                    <View style={[styles.input, styles.largeInput]}>
+                      <Text>Producto</Text>
+                      <Picker
+                        selectedValue={producto}
+                        onValueChange={(itemValue) => {
+                          setProducto(itemValue);
+                          if (itemValue === "Otro") {
+                            setShowOtherInput(true);
+                            setShowMarcaSelect(false);
+                          } else {
+                            setShowOtherInput(false);
+                            setShowMarcaSelect(true);
+                          }}}
+                      >
+                        <Picker.Item label="Seleccione un producto" value="" />
+                        {dataProductos.map((producto) => (
+                          <Picker.Item key={producto.id} label={producto.nombre} value={producto.nombre} />
+                        ))}
+                      </Picker>
+                    </View>
+                    
+
+                    {/* Campo de marca (si aplica) */}
+                    {showMarcaSelect && (
+                      <TextInput
+                        style={[styles.input, styles.mediumInput]}
+                        placeholder="Marca"
+                        value={marca}
+                        onChangeText={setMarca}
+                      />
+                    )}
+
+                    {/* Campo de otro producto (si aplica) */}
+                    {showOtherInput && (
+                      <TextInput
+                        style={[styles.input, styles.largeInput]}
+                        placeholder="Otro producto"
+                        value={otroProducto}
+                        onChangeText={setOtroProducto}
+                      />
+                    )}
+
+                    {/* Botón para agregar materiales */}
+                    <TouchableOpacity style={styles.addButton} onPress={handleAddMaterial}>
+                      <Text style={styles.addButtonText}>Agregar</Text>
+                    </TouchableOpacity>
+                  </View>
+
+                  {/* Lista de materiales */}
+                  {materialesList.length > 0 && (
+                    <FlatList
+                      data={materialesList}
+                      keyExtractor={(_, index) => index.toString()}
+                      renderItem={({ item, index }) => (
+                        <View style={styles.materialItem}>
+                          <Text style={styles.materialText}>
+                            {item.cantidad} {item.producto || item.otroProducto} {item.marca || ""}
+                          </Text>
+                          <TouchableOpacity onPress={() => handleRemoveMaterial(index)}>
+                            <MaterialIcons name="delete" size={24} color="red" />
+                          </TouchableOpacity>
+                        </View>
+                      )}
+                    />
+                  )}
+                </>
+              )}
+            </View>
               
 
               <View style={styles.switchContainer}>
@@ -980,7 +1110,65 @@ const formatTime = (timeString) => {
       position: 'absolute',
       top: 10,
       right: 10,
-  },
+    },
+    switchContainer: {
+      flexDirection: "row",
+      alignItems: "center",
+      marginBottom: 16,
+    },
+    label: {
+      fontSize: 16,
+      marginRight: 8,
+    },
+    inputContainer: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      alignItems: "center",
+      marginBottom: 16,
+    },
+    input: {
+      borderWidth: 1,
+      borderColor: "#ccc",
+      borderRadius: 4,
+      padding: 8,
+      marginRight: 8,
+      marginBottom: 8,
+    },
+    smallInput: {
+      width: 60,
+    },
+    mediumInput: {
+      flex: 1,
+      minWidth: 120,
+    },
+    largeInput: {
+      flex: 1,
+    },
+    addButton: {
+      backgroundColor: "#007BFF",
+      padding: 8,
+      borderRadius: 4,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    addButtonText: {
+      color: "#fff",
+      fontWeight: "bold",
+    },
+    materialItem: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      padding: 8,
+      borderWidth: 1,
+      borderColor: "#ccc",
+      borderRadius: 4,
+      marginBottom: 8,
+    },
+    materialText: {
+      flex: 1,
+      marginRight: 8,
+    },
   });
 
 export default AttendMaintenance;
